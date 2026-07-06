@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Ansiedad de Beck (BAI)</title>
+    <!-- Incluir SDK oficial de EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #004658;
+            --primary-light: #e6f0f2;
+            --accent-color: #005f73;
+            --text-color: #2b2b2b;
+            --bg-color: #f8fafb;
+            --border-color: #cfdadf;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-top: 8px solid var(--primary-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            max-width: 220px;
+            height: auto;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .instructions {
+            background-color: var(--primary-light);
+            padding: 15px 20px;
+            border-radius: 6px;
+            font-size: 14.5px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .patient-info {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+
+        @media (max-width: 600px) {
+            .patient-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 12px 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        th.sintoma-header {
+            text-align: left;
+            width: 50%;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafbfc;
+        }
+
+        tr:hover {
+            background-color: #f1f5f7;
+        }
+
+        td.sintoma-cell {
+            font-weight: 500;
+        }
+
+        td.radio-cell {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        td.radio-cell input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--accent-color);
+        }
+
+        /* Modal / Results overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-top: 6px solid var(--primary-color);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            color: var(--primary-color);
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .ansiedad-sin { background-color: #e2f7ed; color: #155724; }
+        .ansiedad-leve { background-color: #fff3cd; color: #856404; }
+        .ansiedad-moderada { background-color: #ffe8d6; color: #a75d00; }
+        .ansiedad-severa { background-color: #f8d7da; color: #721c24; }
+
+        .modal-text {
+            font-size: 15px;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .btn-close {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-close:hover {
+            background-color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="logo-container">
+            <img src="logo azul sin fondo.png" alt="Logo Irvin Acosta Psicólogo">
+        </div>
+        <h1>Inventario de Ansiedad de Beck (BAI)</h1>
+    </div>
+
+    <div class="instructions">
+        A continuación, encontrarás síntomas que usualmente se experimentan con la ansiedad. Indica el grado de intensidad o malestar que los siguientes síntomas te han provocado en las <strong>últimas 2 SEMANAS</strong>.
+    </div>
+
+    <form id="baiForm">
+        <!-- Datos personales -->
+        <div class="patient-info">
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ej. Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label for="edad">Edad</label>
+                <input type="number" id="edad" name="edad" required min="1" max="120" placeholder="Ej. 25">
+            </div>
+            <div class="form-group">
+                <label for="sexo">Sexo</label>
+                <select id="sexo" name="sexo" required>
+                    <option value="" disabled selected>Seleccione...</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabla de Reactivos -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="sintoma-header">Síntoma</th>
+                        <th>Nada (0)</th>
+                        <th>Leve (1)</th>
+                        <th>Moderado (2)</th>
+                        <th>Severo (3)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <script>
+                        const sintomas = [
+                            "Hormigueo o entumecimiento",
+                            "Sensación de calor",
+                            "Debilidad en las piernas",
+                            "Incapacidad para relajarme",
+                            "Miedo a que suceda lo peor",
+                            "Mareo o vértigo",
+                            "Palpitaciones o taquicardia",
+                            "Intranquilo o inestable",
+                            "Asustado o atemorizado",
+                            "Nerviosismo",
+                            "Sensación de ahogarme",
+                            "Temblor de manos",
+                            "Temblor generalizado",
+                            "Miedo a perder el control",
+                            "Dificultad para respirar",
+                            "Miedo a morir",
+                            "Asustado",
+                            "Indigestión o molestia abdominal",
+                            "Sensación de desmayarse",
+                            "Rubor o enrojecimiento facial",
+                            "Sudoración"
+                        ];
+
+                        sintomas.forEach((sintoma, index) => {
+                            const num = index + 1;
+                            document.write(`
+                                <tr>
+                                    <td class="sintoma-cell">${num}. ${sintoma}</td>
+                                    <td class="radio-cell"><input type="radio" name="p${num}" value="0" required></td>
+                                    <td class="radio-cell"><input type="radio" name="p${num}" value="1"></td>
+                                    <td class="radio-cell"><input type="radio" name="p${num}" value="2"></td>
+                                    <td class="radio-cell"><input type="radio" name="p${num}" value="3"></td>
+                                </tr>
+                            `);
+                        });
+                    </script>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" class="btn-submit" id="submitBtn">Enviar Diagnóstico</button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Resultados -->
+<div class="modal" id="resultModal">
+    <div class="modal-content">
+        <h2 class="modal-title">¡Muchas gracias por responder!</h2>
+        <p class="modal-text" id="patientGreeting"></p>
+        <p class="modal-text">Tu evaluación ha sido procesada de manera segura.</p>
+        <div>
+            <span>Puntuación Total: <strong><span id="scoreText">0</span> puntos</strong></span>
+        </div>
+        <div id="badgeClassification" class="result-badge">
+            -
+        </div>
+        <p class="modal-text" style="font-size: 13px; color: #666; margin-top: 15px;">
+            Los resultados han sido enviados automáticamente a tu especialista para su correcta interpretación clínica.
+        </p>
+        <button class="btn-close" onclick="closeModal()">Entendido</button>
+    </div>
+</div>
+
+<script>
+    // Inicialización oficial de EmailJS con tu clave pública
+    (function() {
+        emailjs.init({
+          publicKey: "81g6Ac_4uRaHpLeZx",
+        });
+    })();
+
+    document.getElementById('baiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Enviando...";
+
+        // Capturar datos del paciente
+        const nombre = document.getElementById('nombre').value;
+        const edad = document.getElementById('edad').value;
+        const sexo = document.getElementById('sexo').value;
+        
+        // Obtener la hora y fecha de manera automática
+        const ahora = new Date();
+        const fechaHoraStr = ahora.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+
+        // Calcular puntuación total
+        let totalScore = 0;
+        for (let i = 1; i <= 21; i++) {
+            const selected = document.querySelector(`input[name="p${i}"]:checked`);
+            if (selected) {
+                totalScore += parseInt(selected.value);
+            }
+        }
+
+        // Clasificación de ansiedad según baremo del BAI
+        let clasificacion = "";
+        let badgeClass = "";
+
+        if (totalScore <= 10) {
+            clasificacion = "Sin ansiedad";
+            badgeClass = "ansiedad-sin";
+        } else if (totalScore <= 20) {
+            clasificacion = "Ansiedad leve";
+            badgeClass = "ansiedad-leve";
+        } else if (totalScore <= 30) {
+            clasificacion = "Ansiedad moderada";
+            badgeClass = "ansiedad-moderada";
+        } else {
+            clasificacion = "Ansiedad severa";
+            badgeClass = "ansiedad-severa";
+        }
+
+        // Mostrar resultados en el Modal para el paciente
+        document.getElementById('patientGreeting').innerText = `Hola ${nombre},`;
+        document.getElementById('scoreText').innerText = totalScore;
+        
+        const badge = document.getElementById('badgeClassification');
+        badge.innerText = clasificacion.toUpperCase();
+        badge.className = `result-badge ${badgeClass}`;
+
+        // Mostrar el modal
+        document.getElementById('resultModal').style.display = 'flex';
+
+        // Variables preparadas para tu plantilla de EmailJS
+        // Configura estas variables exactas entre llaves dobles {{}} en tu panel de EmailJS:
+        // {{nombre}}, {{edad}}, {{sexo}}, {{fecha_hora}}, {{puntuacion}}, {{clasificacion}}
+        const templateParams = {
+            nombre: nombre,
+            edad: edad,
+            sexo: sexo,
+            fecha_hora: fechaHoraStr,
+            puntuacion: totalScore,
+            clasificacion: clasificacion
+        };
+
+        // Enviar a través de EmailJS
+        emailjs.send('service_tf79c79', 'template_rm7du9q', templateParams)
+            .then(function(response) {
+                console.log('Correo enviado con éxito por EmailJS!', response.status, response.text);
+            }, function(error) {
+                console.error('Fallo al enviar el correo por EmailJS...', error);
+            });
+    });
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+        document.getElementById('baiForm').reset();
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Enviar Diagnóstico";
+    }
+</script>
+
+</body>
+</html>
